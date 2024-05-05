@@ -1,0 +1,119 @@
+{
+	"version": "2.0.0",
+	"type": "shell",
+	"command": "./gradlew",
+	"presentation": {
+		"echo": true,
+		"reveal": "always",
+		"focus": true,
+		"clear": true,
+		"close": false,
+		"panel": "dedicated",
+		"showReuseMessage": false,
+		"revealProblems": "never",
+	},
+	"tasks": [
+		{
+			"label": "Run Flagship",
+			"detail": "Run everything necessary to run the application",
+
+			"dependsOn": [
+				"Run Vite Web UI",
+				"Run Kotlin GUI",
+			],
+
+			"group": "build",
+		},
+		// Start Vite:
+		{
+			"label": "Run Vite Web UI",
+			"detail": "Installs and starts Vite",
+			"icon": {
+				"id": "layout",
+				"color": "terminal.ansiGreen",
+			},
+
+			"presentation": {
+				"group": "Flagship"
+			},
+
+			"command": "cd webui ; yarn install ; yarn run dev",
+			"group": "build",
+		},
+		// Run Application:
+		{
+			// Details:
+			"label": "Run Kotlin GUI",
+			"detail": "Run the application",
+			"icon": {
+				"id": "rocket",
+				"color": "terminal.ansiCyan",
+			},
+
+			"presentation": {
+				"group": "Flagship"
+			},
+
+			// Command to use:
+			"group": "build",
+            "args": [
+                "run"
+            ],
+		},
+		// Build:
+		{
+			// Details:
+			"label": "Gradle Build",
+			"detail": "Will download + install maven dependencies and build the project",
+			"icon": {
+				"id": "sync",
+				"color": "terminal.ansiRed",
+			},
+
+			// Command to use:
+			"group": "build",
+            "args": [
+				"build"
+            ],
+
+			// Auto run the task when the terminal is opened:
+			"problemMatcher": [
+				"$gradle",
+			]
+		},
+		// Clean and rebuild:
+		{
+			// Details:
+			"label": "Clean and Rebuild",
+			"detail": "Clean and rebuild the application",
+			"icon": {
+				"id": "sync",
+				"color": "terminal.ansiRed",
+			},
+
+			// Command to use:
+			"group": "build",
+            "args": [
+                "clean",
+				"build",
+				"--refresh-dependencies"
+            ],
+		},
+		// Run Tests:
+		{
+			// Details:
+			"label": "Run Tests",
+			"detail": "Run the tests for the application",
+			"icon": {
+				"id": "beaker",
+				"color": "terminal.ansiGreen",
+			},
+
+			// Command to use:
+			"group": "build",
+            "args": [
+                "test"
+            ],
+		},
+	]
+}

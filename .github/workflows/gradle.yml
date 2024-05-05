@@ -1,0 +1,177 @@
+# Copyright © 2024 High Point Aero Technologies.
+
+name: Build and package
+
+# Github username - Pull request or push - Pull request name or commit message
+run-name: ${{ github.actor }}, ${{ github.event_name }} ${{ github.event.pull_request.title }}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+
+    # CHECKOUT CODE
+    - name: Checkout source code
+      uses: actions/checkout@v4.1.1
+
+    # CACHING
+    - name: Cache Gradle packages
+      id: cache-gradle
+      uses: actions/cache@v4.0.2
+      env:
+        cache-name: cache-gradle
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/build.gradle.kts') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - if: ${{ steps.cache-gradle.outputs.cache-hit != 'true' }}
+      name: Check Gradle cache
+      continue-on-error: true
+      run: echo "Unable to restore cache from gradle. Proceeding with build."
+
+    # GRADLE SETUP
+    - name: Set up Gradle and JDK 21
+      uses: gradle/actions/setup-gradle@v3.1.0
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # BUILD
+    - name: Build with Gradle
+      run: ./gradlew build --no-daemon
+
+    # TEST
+    - name: Run tests
+      run: ./gradlew test
+
+    # UPLOAD RAW ARTIFACTS
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: app.jar
+        path: app/build/libs/*.jar
+    
+    # SAVE CACHE
+    - name: Save Gradle cache
+      if: ${{ steps.cache-gradle.outputs.cache-hit != 'true' }}
+      uses: actions/cache@v4.0.2
+      env:
+        cache-name: cache-gradle
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/build.gradle.kts') }}
+
+  windows:
+    needs: [ build ]
+    name: Build Installer on Windows
+    runs-on: windows-latest
+    steps:
+      # CHECKOUT CODE
+      - name: Checkout source code
+        uses: actions/checkout@v4.1.1
+
+      # DOWNLOAD ARTIFACTS FROM THE 'build' JOB
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4.1.4
+        with:
+          name: app.jar
+
+      - name: Move app.jar to build folder
+        run: mkdir -p app/build/libs && mv app.jar app/build/libs/app.jar
+
+      # SETUP BUILD ENVIRONMENT
+      - name: Setup JDK
+        uses: actions/setup-java@v4.2.1
+        with:
+          distribution: 'oracle'
+          java-version: 21
+          
+      # PACKAGING TOOLS
+      - name: Install WiX
+        run: dotnet tool install --global wix
+
+      # BUILD FOR DISTRIBUTION
+      - name: Create Windows executable
+        run: ./gradlew windowInstaller
+
+      # SAVE INSTALLERS
+      - name: Upload installer
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: DefenseOS.msi
+          path: ./app/*.msi
+
+  linux:
+    needs: [ build ]
+    name: Build Installer on Linux
+    runs-on: ubuntu-latest
+    steps:
+      
+      # CHECKOUT CODE
+      - name: Checkout source code
+        uses: actions/checkout@v4.1.1
+
+      # DOWNLOAD ARTIFACTS FROM THE 'build' JOB
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4.1.4
+        with:
+          name: app.jar
+
+      - name: Move app.jar to build folder
+        run: mkdir -p app/build/libs && mv app.jar app/build/libs/app.jar
+
+      # PACKAGING TOOLS
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libxext6 \
+            libxrender1 \
+            libxxf86vm1 \
+            libxtst6 \
+            libfreetype6 \
+            libxi6 \
+            libxdmcp6 \
+            libxau6 \
+            libx11-6 \
+            libxi6
+
+      # BUILD FOR DISTRIBUTION
+      - name: Create Linux RPM package
+        run: ./gradlew redhatInstaller
+
+      - name: Create Linux Deb package
+        run: ./gradlew debianInstaller
+
+      # SAVE INSTALLERS
+      - name: Upload RPM Artifact
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: DefenseOS.rpm
+          path: ./app/*.rpm
+
+      - name: Upload Debian Artifact
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: DefenseOS.deb
+          path: ./app/*.deb
+          

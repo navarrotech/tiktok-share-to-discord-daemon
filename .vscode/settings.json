@@ -1,0 +1,14 @@
+{
+    // Java configuration:
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic",
+
+    // Hide files in the sidebar:
+    "files.exclude": {
+        ".gradle/**": true,
+        "gradlew": true,
+        "gradlew.bat": true,
+        "gradle.properties": true,
+        ".gitattributes": true,
+    }
+}

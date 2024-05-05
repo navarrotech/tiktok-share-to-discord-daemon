@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        // Theme:
+        "PKief.material-icon-theme",
+        "tobiastimm.matter",
+    ],
+    "unwantedRecommendations": [
+        
+    ]
+}
