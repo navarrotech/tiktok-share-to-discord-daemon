@@ -13,6 +13,7 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.postgresql.util.PSQLException
 
 import java.io.BufferedReader
@@ -114,33 +115,15 @@ class TikTokManager (private val viewEngine: ViewEngine) {
                     e.printStackTrace()
                 }
 
-
-                val jsonPayload = """
-                {
-                    "content": "$description",
-                    "embeds": [{
-                        "title": "$authorUsername",
-                        "description": "$description"
-                    }],
-                    "attachments": [{
-                        "id": 0,
-                        "description": "$description",
-                        "filename": "$authorUsername.mp4"
-                    }]
-                }
-                """.trimIndent()
-
-                val mediaTypeJson = "application/json".toMediaType()
-
                 // Upload the video to the Discord webhook
                 val requestBody = MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
-                    .addFormDataPart("file", "$authorUsername.mp4",
-                        tempFile.asRequestBody("application/octet-stream".toMediaType()))
                     .addFormDataPart(
-                        "payload_json",
-                        jsonPayload
+                        "file",
+                        "$authorUsername.mp4",
+                        tempFile.asRequestBody("application/octet-stream".toMediaType())
                     )
+                    .addFormDataPart("content", description)
                     .build()
 
                 val uploadRequest = Request.Builder()

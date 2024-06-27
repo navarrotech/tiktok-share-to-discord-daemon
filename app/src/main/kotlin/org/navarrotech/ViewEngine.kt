@@ -74,7 +74,7 @@ class ViewEngine {
         // Set up the browser engine
         // https://teamdev.com/jxbrowser/docs/guides/engine.html
         val engineOptions = EngineOptions.newBuilder(
-            RenderingMode.OFF_SCREEN
+            RenderingMode.HARDWARE_ACCELERATED
         )
 
         // Set the license key for the engine
@@ -97,25 +97,25 @@ class ViewEngine {
         // Custom user agent, to identify the browser engine
         engineOptions.userAgent(userAgent)
 
-        engineOptions.addScheme(
-            Scheme.of("https"),
-            InterceptUrlRequestCallback { params ->
-                val url = params.urlRequest().url()
-
-                if (url.contains("/monitor_browser/") || url.contains("/web/report") || url.contains("tiktokw.us/web/common")){
-                    // Intercept the request and return a custom response
-                    val job = params.newUrlRequestJob(
-                        UrlRequestJob.Options
-                            .newBuilder(HttpStatus.NO_CONTENT)
-                            .build())
-                    job.complete()
-                    InterceptUrlRequestCallback.Response.intercept(job)
-                }
-                else {
-                    InterceptUrlRequestCallback.Response.proceed()
-                }
-            }
-        )
+//        engineOptions.addScheme(
+//            Scheme.of("https"),
+//            InterceptUrlRequestCallback { params ->
+//                val url = params.urlRequest().url()
+//
+//                if (url.contains("/monitor_browser/") || url.contains("/web/report") || url.contains("tiktokw.us/web/common") || url.contains("mcs.tiktokw.us")){
+//                    // Intercept the request and return a custom response
+//                    val job = params.newUrlRequestJob(
+//                        UrlRequestJob.Options
+//                            .newBuilder(HttpStatus.NO_CONTENT)
+//                            .build())
+//                    job.complete()
+//                    InterceptUrlRequestCallback.Response.intercept(job)
+//                }
+//                else {
+//                    InterceptUrlRequestCallback.Response.proceed()
+//                }
+//            }
+//        )
 
         engine = Engine.newInstance(
             engineOptions.build()
@@ -136,6 +136,9 @@ class ViewEngine {
 
         // Disable autofill (good for security)
         profile.preferences().disableAutofill()
+
+        // Clear cache on startup
+        profile.httpCache().clear().join()
 
         browser = profile.newBrowser()
         browser.on(BrowserClosed::class.java) { _ ->

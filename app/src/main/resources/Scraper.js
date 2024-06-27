@@ -42,7 +42,6 @@ function getConversations() {
 
                 const messageArray = []
 
-                let isFirst = true;
                 for (const message of [...messages]) {
                     let hasVideo = false
                     let childWithVideoStuff = null
@@ -54,11 +53,16 @@ function getConversations() {
                     })
                     if (hasVideo) {
                         await sleep(1_000)
-                        if (isFirst) {
-                            childWithVideoStuff.click()
-                            isFirst = false
+                        const childElement = childWithVideoStuff.children[0]
+                        childElement.click()
+                        sleep(100)
+                        if (!document.querySelector("[data-e2e=browse-video-desc]")) {
+                            childElement.click()
                         }
-                        childWithVideoStuff.children[0].click()
+                        sleep(100)
+                        if (!document.querySelector("[data-e2e=browse-video-desc]")) {
+                            childElement.click()
+                        }
                         await waitForElementToExist("[data-e2e=browse-video-desc]")
                         messageArray.push(
                             await gatherMessageDataFromPage()
@@ -98,6 +102,6 @@ async function doTheThing(){
 }
 
 let isRunning = false;
-setInterval(doTheThing, 10_000)
+setInterval(doTheThing, 60_000)
 waitForElementToExist("[data-e2e=chat-list-item]")
     .then(() => doTheThing())

@@ -2,7 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/tiktok-share-to-discord-daemon" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/tiktok-sharing-bot-daemon" vcs="Git" />
   </component>
 </project>

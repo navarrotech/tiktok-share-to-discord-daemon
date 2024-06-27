@@ -20,9 +20,9 @@ class App : JFrame() {
         @JvmStatic
         fun main(args: Array<String>) {
             SwingUtilities.invokeLater {
+//                Database.migrate()
                 App().start()
             }
-            Database.migrate()
         }
     }
 
